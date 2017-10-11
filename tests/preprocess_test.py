@@ -3,8 +3,8 @@ import unittest
 
 import numpy as np
 
-from anago.data import reader
-from anago.data.preprocess import Preprocessor, UNK, PAD, dense_to_one_hot
+from namaco.data import reader
+from namaco.data.preprocess import Preprocessor, UNK, PAD, dense_to_one_hot
 
 
 class PreprocessorTest(unittest.TestCase):
