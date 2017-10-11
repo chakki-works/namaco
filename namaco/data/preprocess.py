@@ -92,7 +92,8 @@ class Preprocessor(BaseEstimator, TransformerMixin):
         if self.padding:
             maxlen = max(lengths)
             sents = pad_sequences(chars, maxlen, padding='post')
-            y = pad_sequences(y, maxlen, padding='post')
+            if y is not None:
+                y = pad_sequences(y, maxlen, padding='post')
         else:
             sents = chars
 
