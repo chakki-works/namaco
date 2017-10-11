@@ -1,0 +1,25 @@
+安	B-PERSON
+倍	E-PERSON
+首	O
+相	O
+が	O
+訪	O
+米	S-LOC
+し	O
+た	O
+ 
+本	B-DATE
+日	E-DATE
+か	O
+ら	O
+働	O
+き	O
+ま	O
+す	O
+。	O
+
+法	B-FACILITY
+隆	I-FACILITY
+寺	E-FACILITY
+と	O
+猫	O
