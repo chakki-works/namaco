@@ -94,6 +94,8 @@ class Preprocessor(BaseEstimator, TransformerMixin):
             sents = pad_sequences(chars, maxlen, padding='post')
             if y is not None:
                 y = pad_sequences(y, maxlen, padding='post')
+                y = dense_to_one_hot(y, len(self.vocab_tag), nlevels=2)
+
         else:
             sents = chars
 
