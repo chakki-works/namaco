@@ -7,7 +7,7 @@ import namaco
 from namaco.data.reader import load_data_and_labels
 from namaco.data.preprocess import prepare_preprocessor
 from namaco.config import ModelConfig, TrainingConfig
-from namaco.models import CharacterNER
+from namaco.models import CharNER
 
 
 class TrainerTest(unittest.TestCase):
@@ -30,12 +30,10 @@ class TrainerTest(unittest.TestCase):
         p = prepare_preprocessor(np.r_[x_train, x_valid, x_test], y_train)  # np.r_ is for vocabulary expansion.
         p.save(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
 
-        model = CharacterNER(model_config, p.vocab_size(), p.tag_size())
-        loss = model.loss
-        model = model.build()
+        model = CharNER(model_config, p.vocab_size(), p.tag_size())
 
         trainer = namaco.Trainer(model,
-                                 loss,
+                                 model.loss,
                                  training_config,
                                  checkpoint_path=LOG_ROOT,
                                  save_path=SAVE_ROOT,
