@@ -119,6 +119,12 @@ class Preprocessor(BaseEstimator, TransformerMixin):
         else:
             return word
 
+    def vocab_size(self):
+        return len(self.vocab_char)
+
+    def tag_size(self):
+        return len(self.vocab_tag)
+
     def save(self, file_path):
         joblib.dump(self, file_path)
 

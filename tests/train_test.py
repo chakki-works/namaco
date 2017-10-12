@@ -30,7 +30,7 @@ class TrainerTest(unittest.TestCase):
         p = prepare_preprocessor(np.r_[x_train, x_valid, x_test], y_train)  # np.r_ is for vocabulary expansion.
         p.save(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
 
-        model = CharacterNER(model_config, len(p.vocab_char), len(p.vocab_tag))
+        model = CharacterNER(model_config, p.vocab_size(), p.tag_size())
         loss = model.loss
         model = model.build()
 
