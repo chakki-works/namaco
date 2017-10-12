@@ -13,8 +13,8 @@ class TrainerTest(unittest.TestCase):
 
     def test_train(self):
         DATA_ROOT = os.path.join(os.path.dirname(__file__), 'data')
-        SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'data')  # trained model
-        LOG_ROOT = os.path.join(os.path.dirname(__file__), 'data')     # checkpoint, tensorboard
+        SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')  # trained model
+        LOG_ROOT = os.path.join(os.path.dirname(__file__), 'logs')     # checkpoint, tensorboard
 
         model_config = ModelConfig()
         training_config = TrainingConfig()
