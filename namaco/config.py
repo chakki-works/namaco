@@ -4,12 +4,6 @@ class ModelConfig(object):
     def __init__(self):
         """Sets the default model hyperparameters."""
 
-        # Number of unique words in the vocab (plus 2, for <UNK>, <PAD>).
-        self.vocab_size = None
-
-        # Batch size.
-        self.batch_size = 32
-
         # LSTM input and output dimensionality, respectively.
         self.embedding_size = 100
         self.num_lstm_units = 100
@@ -46,6 +40,3 @@ class TrainingConfig(object):
 
         # Fine-tune word embeddings
         self.train_embeddings = True
-
-        # How many model checkpoints to keep.
-        self.max_checkpoints_to_keep = 5
