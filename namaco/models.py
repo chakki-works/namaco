@@ -10,10 +10,10 @@ def load(filepath):
 
 class CharacterNER(object):
 
-    def __init__(self, config, ntags=None):
+    def __init__(self, config, vocab_size, ntags):
         sequence_lengths = Input(batch_shape=(None, 1), dtype='int32')
         char_ids = Input(batch_shape=(None, None), dtype='int32')
-        char_embeddings = Embedding(input_dim=config.vocab_size,
+        char_embeddings = Embedding(input_dim=vocab_size,
                                     output_dim=config.embedding_size,
                                     mask_zero=True)(char_ids)
         x = Dropout(config.dropout)(char_embeddings)
