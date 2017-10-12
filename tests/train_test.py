@@ -7,6 +7,7 @@ import namaco
 from namaco.data.reader import load_data_and_labels
 from namaco.data.preprocess import prepare_preprocessor
 from namaco.config import ModelConfig, TrainingConfig
+from namaco.models import CharacterNER
 
 
 class TrainerTest(unittest.TestCase):
@@ -30,7 +31,12 @@ class TrainerTest(unittest.TestCase):
         p.save(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
         model_config.vocab_size = len(p.vocab_char)
 
-        trainer = namaco.Trainer(model_config,
+        model = CharacterNER(model_config, len(p.vocab_tag))
+        loss = model.loss
+        model = model.build()
+
+        trainer = namaco.Trainer(model,
+                                 loss,
                                  training_config,
                                  checkpoint_path=LOG_ROOT,
                                  save_path=SAVE_ROOT,
