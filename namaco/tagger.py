@@ -1,27 +1,21 @@
-import os
 from collections import defaultdict
 
 import numpy as np
 
-from namaco.models import CharacterNER
 from namaco.data.metrics import get_entities
+from namaco.models import load
 
 
 class Tagger(object):
 
     def __init__(self,
-                 config,
-                 weights,
-                 save_path='',
-                 preprocessor=None,
+                 model_path,
+                 preprocessor,
                  tokenizer=str.split):
 
         self.preprocessor = preprocessor
         self.tokenizer = tokenizer
-
-        # Build the model
-        self.model = CharacterNER(config, ntags=len(self.preprocessor.vocab_tag))
-        self.model.load(filepath=os.path.join(save_path, weights))
+        self.model = load(model_path)
 
     def predict(self, words):
         X = self.preprocessor.transform([words])

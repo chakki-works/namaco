@@ -1,5 +1,3 @@
-import os
-
 from keras.optimizers import Adam
 
 from namaco.data.metrics import get_callbacks
@@ -35,7 +33,9 @@ class Trainer(object):
 
         # Build the model
         model = CharacterNER(self.model_config, len(self.preprocessor.vocab_tag))
-        model.compile(loss=model.crf.loss,
+        loss = model.loss
+        model = model.build()
+        model.compile(loss=loss,
                       optimizer=Adam(lr=self.training_config.learning_rate),
                       )
 
@@ -50,6 +50,3 @@ class Trainer(object):
                             steps_per_epoch=train_steps,
                             epochs=self.training_config.max_epoch,
                             callbacks=callbacks)
-
-        # Save the model
-        model.save(os.path.join(self.save_path, 'model.h5'))

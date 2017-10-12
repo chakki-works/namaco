@@ -32,10 +32,10 @@ def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True):
             print('Successfully made a directory: {}'.format(log_dir))
             os.mkdir(log_dir)
 
-        file_name = '_'.join(['model_weights', '{epoch:02d}', '{f1:2.2f}']) + '.h5'
+        file_name = 'model.h5'
         save_callback = ModelCheckpoint(os.path.join(log_dir, file_name),
                                         monitor='f1',
-                                        save_weights_only=True)
+                                        save_best_only=True)
         callbacks.append(save_callback)
 
     if eary_stopping:
@@ -128,7 +128,6 @@ class F1score(Callback):
             y_true = np.argmax(y_true, -1)
             sequence_lengths = data[-1] # shape of (batch_size, 1)
             sequence_lengths = np.reshape(sequence_lengths, (-1,))
-            #y_pred = np.asarray(self.model_.predict(data, sequence_lengths))
             y_pred = self.model.predict_on_batch(data)
             y_pred = np.argmax(y_pred, -1)
 
