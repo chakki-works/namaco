@@ -10,18 +10,16 @@ class Trainer(object):
                  model,
                  loss,
                  training_config,
-                 checkpoint_path='',
-                 save_path='',
-                 tensorboard=True,
+                 log_dir=None,
+                 save_path=None,
                  preprocessor=None,
                  ):
 
         self.model = model
         self.loss = loss
         self.training_config = training_config
-        self.checkpoint_path = checkpoint_path
+        self.log_dir = log_dir
         self.save_path = save_path
-        self.tensorboard = tensorboard
         self.preprocessor = preprocessor
 
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
@@ -37,8 +35,8 @@ class Trainer(object):
                            )
 
         # Prepare callbacks for training
-        callbacks = get_callbacks(log_dir=self.checkpoint_path,
-                                  tensorboard=self.tensorboard,
+        callbacks = get_callbacks(log_dir=self.log_dir,
+                                  save_path=self.save_path,
                                   eary_stopping=self.training_config.early_stopping,
                                   valid=(valid_steps, valid_batches, self.preprocessor))
 

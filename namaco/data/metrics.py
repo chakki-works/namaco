@@ -1,16 +1,14 @@
-import os
-
 import numpy as np
 from keras.callbacks import Callback, TensorBoard, EarlyStopping, ModelCheckpoint
 
 
-def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True):
+def get_callbacks(log_dir=None, save_path=None, valid=(), eary_stopping=True):
     """Get callbacks.
 
     Args:
         log_dir (str): the destination to save logs(for TensorBoard).
+        save_path (str): the destination to save models.
         valid (tuple): data for validation.
-        tensorboard (bool): Whether to use tensorboard.
         eary_stopping (bool): whether to use early stopping.
 
     Returns:
@@ -18,25 +16,14 @@ def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True):
     """
     callbacks = []
 
-    if log_dir and tensorboard:
-        if not os.path.exists(log_dir):
-            print('Successfully made a directory: {}'.format(log_dir))
-            os.mkdir(log_dir)
+    if log_dir:
         callbacks.append(TensorBoard(log_dir))
 
     if valid:
         callbacks.append(F1score(*valid))
 
-    if log_dir:
-        if not os.path.exists(log_dir):
-            print('Successfully made a directory: {}'.format(log_dir))
-            os.mkdir(log_dir)
-
-        file_name = 'model.h5'
-        save_callback = ModelCheckpoint(os.path.join(log_dir, file_name),
-                                        monitor='f1',
-                                        save_best_only=True)
-        callbacks.append(save_callback)
+    if save_path:
+        callbacks.append(ModelCheckpoint(save_path, monitor='f1', save_best_only=True))
 
     if eary_stopping:
         callbacks.append(EarlyStopping(monitor='f1', patience=3, mode='max'))
