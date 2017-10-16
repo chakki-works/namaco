@@ -1,7 +1,7 @@
 from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout
 from keras.models import Model, load_model
 
-from namaco.layers import ChainCRF, create_custom_objects
+from namaco.crf import CRFLayer, create_custom_objects
 
 
 def load(filepath):
@@ -20,8 +20,8 @@ def CharNER(config, vocab_size, ntags):
     x = Dropout(config.dropout)(x)
     x = Dense(config.num_lstm_units, activation='tanh')(x)
     x = Dense(ntags)(x)
-    crf = ChainCRF()
-    pred = crf(x)
+    crf = CRFLayer()
+    pred = crf([x, sequence_lengths])
 
     model = Model(inputs=[char_ids, sequence_lengths], outputs=[pred])
     model.loss = crf.loss  # a bit tricky
