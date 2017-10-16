@@ -1,6 +1,6 @@
 # namaco
 ***namaco*** is a library for character-based Named Entity Recognition.
-Especially, namaco will focus on Japanese and Chinese named entity recognition.
+namaco will especially focus on Japanese and Chinese named entity recognition.
 
 The following picture is an expected completion image:
 <img src="https://github.com/Hironsan/anago/blob/docs/docs/images/example.ja2.png?raw=true">
@@ -19,8 +19,7 @@ $ pip install namaco
 ```
 
 ## Data format
-The data must be in the following format(tsv).
-The following snippet is an example:
+The data must be in the following format(tsv):
 
 ```
 安	B-PERSON
@@ -46,35 +45,34 @@ import namaco
 from namaco.data.reader import load_data_and_labels
 from namaco.data.preprocess import prepare_preprocessor
 from namaco.config import ModelConfig, TrainingConfig
+from namaco.models import CharNER
 ```
 They include loading modules, a preprocessor and configs.
 
 
-And set parameters to use later:
+Then, set parameters to use later:
 ```python
 DATA_ROOT = 'data/ja/ner'
 SAVE_ROOT = './models'  # trained model
 LOG_ROOT = './logs'     # checkpoint, tensorboard
+model_file = os.path.join(SAVE_ROOT, 'model.h5')
 model_config = ModelConfig()
 training_config = TrainingConfig()
 ```
 
 ### Loading data
-
-After importing the modules, read data for training, validation and test:
+After importing the modules, read data for training and validation:
 ```python
 train_path = os.path.join(DATA_ROOT, 'train.txt')
 valid_path = os.path.join(DATA_ROOT, 'valid.txt')
-test_path = os.path.join(DATA_ROOT, 'test.txt')
 x_train, y_train = load_data_and_labels(train_path)
 x_valid, y_valid = load_data_and_labels(valid_path)
-x_test, y_test = load_data_and_labels(test_path)
 ```
 
-After reading the data, prepare preprocessor:
+After reading the data, prepare preprocessor and model:
 ```python
 p = prepare_preprocessor(x_train, y_train)
-model_config.vocab_size = len(p.vocab)
+model = CharNER(model_config, p.vocab_size(), p.tag_size())
 ```
 
 Now we are ready for training :)
@@ -84,13 +82,17 @@ Now we are ready for training :)
 Let's train a model. For training a model, we can use ***Trainer***. 
 Trainer manages everything about training.
 Prepare an instance of Trainer class and give train data and valid data to train method:
-```
-trainer = namaco.Trainer(model_config, training_config, checkpoint_path=LOG_ROOT, save_path=SAVE_ROOT,
-                        preprocessor=p)
+```python
+trainer = namaco.Trainer(model,
+                         model.loss,
+                         training_config,
+                         log_dir=LOG_ROOT,
+                         save_path=model_file,
+                         preprocessor=p)
 trainer.train(x_train, y_train, x_valid, y_valid)
 ```
 
-If training is progressing normally, progress bar will be displayed as follows:
+If training is progressing normally, progress bar would be displayed as follows:
 
 ```commandline
 ...
@@ -106,7 +108,7 @@ Epoch 5/15
 ...
 ```
 
-
+<!--
 ### Evaluating a model
 To evaluate the trained model, we can use ***Evaluator***.
 Evaluator performs evaluation.
@@ -123,16 +125,15 @@ After evaluation, F1 value is output:
 ```commandline
 - f1: 90.67
 ```
-
+-->
 ### Tagging a sentence
-To tag any text, we can use ***Tagger***.
+We can use ***Tagger*** for tagging text.
 Prepare an instance of Tagger class and give text to tag method:
-```
-weights = 'model_weights.h5'
-tagger = namaco.Tagger(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
+```python
+tagger = namaco.Tagger(model_file, preprocessor=p, tokenizer=list)
 ```
 
-Let's try tagging a sentence, `安倍首相が訪米した`
+Let's try to tag a sentence, `安倍首相が訪米した`
 We can do it as follows:
 ```python
 >>> sent = '安倍首相が訪米した'
