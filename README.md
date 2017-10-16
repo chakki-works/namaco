@@ -137,12 +137,27 @@ Let's try to tag a sentence, `安倍首相が訪米した`
 We can do it as follows:
 ```python
 >>> sent = '安倍首相が訪米した'
->>> print(tagger.tag(sent))
-[('安', 'B-PERSON'), ('倍', 'E-PERSON'), ('首', 'O'),
- ('相', 'O'), ('が', 'O'), ('訪', 'O'),
- ('米', 'S-LOCATION'), ('し', 'O'), ('た', 'O')]
->>> print(tagger.get_entities(sent))
-{'PERSON': ['安倍'], 'LOCATION': ['米']}
+>>> tagger.analyze(sent)
+{
+  "language": "jp",
+  "text": "安倍首相が訪米した",
+  "entities": [
+    {
+      "text": "安倍",
+      "type": "Person",
+      "score": 0.972231
+      "beginOffset": 0,
+      "endOffset": 2,
+    },
+    {
+      "text": "米",
+      "type": "Location",
+      "score": 0.941431
+      "beginOffset": 6,
+      "endOffset": 7,
+    }
+  ]
+}
 ```
 
 
