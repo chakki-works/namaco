@@ -1,6 +1,17 @@
 function getMarkupText(data){
-    var dic = {"PERSON": "person", "LOCATION": "location", "ORG": "organization", "MISC": "misc",
-               "FACILITY": "facility", "DATE": "date"};
+    var dic = {"PERSON": "person", "Person": 'person', "PER": "person",
+               "LOCATION": "location", "Location": "location", "LOC": "location",
+               "ORG": "organization", "Organization": 'organization', "ORG": "organization",
+               "MISC": "misc",
+               "FACILITY": "facility", "Facility": "facility",
+               "DATE": "date", "Date": "date",
+               "Artifact": "artifact",
+               "Count": "count",
+               "Event": "event",
+               "Money": "money",
+               "Percentage": "percentage",
+               "Time": "time"
+               };
 
     var raw_text = data["text"];
     var markup_text = "";

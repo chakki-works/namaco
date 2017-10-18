@@ -23,7 +23,7 @@ def get_callbacks(log_dir=None, save_path=None, valid=(), eary_stopping=True):
         callbacks.append(F1score(*valid))
 
     if save_path:
-        callbacks.append(ModelCheckpoint(save_path, monitor='f1', save_best_only=True))
+        callbacks.append(ModelCheckpoint(save_path, monitor='f1', mode='max', save_best_only=True))
 
     if eary_stopping:
         callbacks.append(EarlyStopping(monitor='f1', patience=3, mode='max'))
