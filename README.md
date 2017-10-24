@@ -2,8 +2,10 @@
 ***namaco*** is a library for character-based Named Entity Recognition.
 namaco will especially focus on Japanese and Chinese named entity recognition.
 
+<!--
 The following picture is an expected completion image:
 <img src="https://github.com/Hironsan/anago/blob/docs/docs/images/example.ja2.png?raw=true">
+-->
 
 # Demo
 The following demo shows Chinese Named Entity Recognition:
