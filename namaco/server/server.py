@@ -2,6 +2,7 @@ import json
 import os
 import tornado.ioloop
 import tornado.web
+import tornado.httpserver
 
 import namaco
 from namaco.data.preprocess import Preprocessor
@@ -27,14 +28,19 @@ class MainHandler(tornado.web.RequestHandler):
 
 BASE_DIR = os.path.dirname(__file__)
 
-application = tornado.web.Application([
-    (r'/', MainHandler),
+
+def main():
+    application = tornado.web.Application([
+        (r'/', MainHandler),
     ],
-    template_path=os.path.join(BASE_DIR, 'templates'),
-    static_path=os.path.join(BASE_DIR, 'static'),
-)
+        template_path=os.path.join(BASE_DIR, 'templates'),
+        static_path=os.path.join(BASE_DIR, 'static'),
+    )
+    http_server = tornado.httpserver.HTTPServer(application)
+    port = int(os.environ.get('PORT', 8888))
+    http_server.listen(port)
+    tornado.ioloop.IOLoop.instance().start()
+
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8888))
-    application.listen(port)
-    tornado.ioloop.IOLoop.current().start()
+    main()
