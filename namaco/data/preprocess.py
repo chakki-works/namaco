@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
-
 import itertools
 import re
 
+import MeCab
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import joblib
 from keras.preprocessing.sequence import pad_sequences
 
+
 UNK = '<UNK>'
 PAD = '<PAD>'
+tagger = MeCab.Tagger('-Owakati')
 # Todo: if padding=True: sents type is np.int32, but if padding=False, type is int32
 
 class Preprocessor(BaseEstimator, TransformerMixin):
@@ -19,12 +21,14 @@ class Preprocessor(BaseEstimator, TransformerMixin):
                  num_norm=True,
                  vocab_init=None,
                  padding=True,
-                 return_lengths=True):
+                 return_lengths=True,
+                 use_word=False):
 
         self.lowercase = lowercase
         self.num_norm = num_norm
         self.padding = padding
         self.return_lengths = return_lengths
+        self.use_word = use_word
         self.vocab_char = None
         self.vocab_tag  = None
         self.vocab_init = vocab_init or {}
@@ -89,20 +93,28 @@ class Preprocessor(BaseEstimator, TransformerMixin):
         if y is not None:
             y = [[self.vocab_tag[t] for t in sent] for sent in y]
 
+        if self.use_word:
+            tags = [label_bies_tags(''.join(sent)) for sent in X]
+
         if self.padding:
             maxlen = max(lengths)
             sents = pad_sequences(chars, maxlen, padding='post')
             if y is not None:
                 y = pad_sequences(y, maxlen, padding='post')
                 y = dense_to_one_hot(y, len(self.vocab_tag), nlevels=2)
-
+            if self.use_word:
+                tags = pad_sequences(tags, maxlen, padding='post')
+                tags = dense_to_one_hot(tags, num_classes=5, nlevels=2)
         else:
             sents = chars
 
         if self.return_lengths:
             lengths = np.asarray(lengths, dtype=np.int32)
             lengths = lengths.reshape((lengths.shape[0], 1))
-            sents = [sents, lengths]
+            if self.use_word:
+                sents = [sents, lengths, tags]
+            else:
+                sents = [sents, lengths]
 
         return (sents, y) if y is not None else sents
 
@@ -157,8 +169,23 @@ def dense_to_one_hot(labels_dense, num_classes, nlevels=1):
         raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))
 
 
-def prepare_preprocessor(X, y, use_char=True):
-    p = Preprocessor()
+def prepare_preprocessor(X, y, use_word=True):
+    p = Preprocessor(use_word=use_word)
     p.fit(X, y)
 
     return p
+
+
+def label_bies_tags(sent):
+    dic = {'S': 1, 'B': 2, 'I': 3, 'E': 4}
+    tags = []
+    words = tagger.parse(sent).split()
+    for word in words:
+        if len(word) == 1:
+            tags.append(dic['S'])
+        else:
+            tags.append(dic['B'])
+            tags.extend([dic['I']] * (len(word) - 2))
+            tags.append(dic['E'])
+
+    return tags

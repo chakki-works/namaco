@@ -7,7 +7,7 @@ import tornado.httpserver
 import namaco
 from namaco.data.preprocess import Preprocessor
 
-SAVE_ROOT = os.path.join(os.path.dirname(__file__), '../../data/models/ja')
+SAVE_ROOT = os.path.join(os.path.dirname(__file__), '../../tests/models/')
 p = Preprocessor.load(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
 model_path = os.path.join(SAVE_ROOT, 'model.h5')
 tagger = namaco.Tagger(model_path, preprocessor=p, tokenizer=list)

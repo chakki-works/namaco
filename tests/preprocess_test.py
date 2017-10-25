@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 import os
 import unittest
 
 import numpy as np
 
 from namaco.data import reader
-from namaco.data.preprocess import Preprocessor, UNK, PAD, dense_to_one_hot
+from namaco.data.preprocess import Preprocessor, UNK, PAD, dense_to_one_hot, label_bies_tags
 
 
 class PreprocessorTest(unittest.TestCase):
@@ -62,6 +63,16 @@ class PreprocessorTest(unittest.TestCase):
         for seq, leng in zip(chars, lengths):
             self.assertEqual(len(seq), leng)
 
+    def test_use_word(self):
+        X, y = reader.load_data_and_labels(self.filename)
+        preprocessor = Preprocessor(padding=True, return_lengths=True, use_word=True)
+        p = preprocessor.fit(X, y)
+        X, y = p.transform(X, y)
+        chars, lengths, bies_tags = X
+        print(chars)
+        print(lengths)
+        print(bies_tags)
+
     def test_unknown_word(self):
         X, y = reader.load_data_and_labels(self.filename)
         preprocessor = Preprocessor(padding=False, return_lengths=False)
@@ -116,3 +127,18 @@ class PreprocessTest(unittest.TestCase):
         # nlevels test
         with self.assertRaises(ValueError):
             labels_one_hot == dense_to_one_hot(labels, num_classes=9, nlevels=3)
+
+
+class MorphTagging(unittest.TestCase):
+
+    def test_tagging(self):
+        sent = '安倍首相が訪米した'
+        y_pred = label_bies_tags(sent)
+        y_true = ['B', 'E', 'B', 'E', 'S', 'B', 'E', 'S', 'S']
+        y_true = [2, 4, 2, 4, 1, 2, 4, 1, 1]
+        self.assertEqual(y_pred, y_true)
+
+        sent = 'マクマスター国務長官'
+        y_pred = label_bies_tags(sent)
+        y_true = [2, 3, 3, 3, 3, 4, 2, 4, 2, 4]
+        self.assertEqual(y_pred, y_true)

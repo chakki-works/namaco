@@ -32,7 +32,7 @@ class TrainingConfig(object):
         self.clip_gradients = 5.0
 
         # The number of max epoch size
-        self.max_epoch = 15
+        self.max_epoch = 35
 
         # Parameters for early stopping
         self.early_stopping = True

@@ -1,4 +1,4 @@
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Concatenate
 from keras.models import Model, load_model
 
 from namaco.crf import CRFLayer, create_custom_objects
@@ -20,10 +20,34 @@ def CharNER(config, vocab_size, ntags):
     x = Dropout(config.dropout)(x)
     x = Dense(config.num_lstm_units, activation='tanh')(x)
     x = Dense(ntags)(x)
+    print(x)
     crf = CRFLayer()
     pred = crf([x, sequence_lengths])
 
     model = Model(inputs=[char_ids, sequence_lengths], outputs=[pred])
+    model.loss = crf.loss  # a bit tricky
+
+    return model
+
+
+def CharWordNER(config, vocab_size, ntags):
+    sequence_lengths = Input(batch_shape=(None, 1), dtype='int32')
+    word_info = Input(batch_shape=(None, None, 5), dtype='float32')
+    char_ids = Input(batch_shape=(None, None), dtype='int32')
+    char_embeddings = Embedding(input_dim=vocab_size,
+                                output_dim=config.embedding_size,
+                                mask_zero=True)(char_ids)
+    x = Dropout(config.dropout)(char_embeddings)
+
+    x = Bidirectional(LSTM(units=config.num_lstm_units, return_sequences=True))(x)
+    x = Dropout(config.dropout)(x)
+    x = Dense(config.num_lstm_units, activation='tanh')(x)
+    x = Dense(ntags)(x)
+    x = Concatenate(axis=-1)([x, word_info])
+    crf = CRFLayer()
+    pred = crf([x, sequence_lengths])
+
+    model = Model(inputs=[char_ids, sequence_lengths, word_info], outputs=[pred])
     model.loss = crf.loss  # a bit tricky
 
     return model

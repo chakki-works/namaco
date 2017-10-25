@@ -20,7 +20,9 @@ class Tagger(object):
     def predict(self, words):
         length = np.array([len(words)])
         X = self.preprocessor.transform([words])
-        pred = self.model.predict([X[0], length])
+        # print(X)
+        # pred = self.model.predict([X[0], length])
+        pred = self.model.predict([X[0], length, X[2]])
         # pred = np.argmax(pred, -1)
         # pred = self.preprocessor.inverse_transform(pred[0])
 

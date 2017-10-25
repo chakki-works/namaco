@@ -5,7 +5,7 @@ import namaco
 from namaco.data.reader import load_data_and_labels
 from namaco.data.preprocess import prepare_preprocessor
 from namaco.config import ModelConfig, TrainingConfig
-from namaco.models import CharNER
+from namaco.models import CharNER, CharWordNER
 
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'data')
@@ -27,8 +27,8 @@ class TrainerTest(unittest.TestCase):
         model_config = ModelConfig()
         training_config = TrainingConfig()
 
-        train_path = os.path.join(DATA_ROOT, 'conll.txt')
-        valid_path = os.path.join(DATA_ROOT, 'conll.txt')
+        train_path = os.path.join(DATA_ROOT, 'iob.txt')
+        valid_path = os.path.join(DATA_ROOT, 'iob.txt')
         x_train, y_train = load_data_and_labels(train_path)
         x_valid, y_valid = load_data_and_labels(valid_path)
 
@@ -36,7 +36,8 @@ class TrainerTest(unittest.TestCase):
         p.save(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
         model_file = os.path.join(SAVE_ROOT, 'model.h5')
 
-        model = CharNER(model_config, p.vocab_size(), p.tag_size())
+        # model = CharNER(model_config, p.vocab_size(), p.tag_size())
+        model = CharWordNER(model_config, p.vocab_size(), p.tag_size())
 
         trainer = namaco.Trainer(model,
                                  model.loss,
