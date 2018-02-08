@@ -19,11 +19,12 @@ def CharNER(config, vocab_size, ntags):
     x = Bidirectional(LSTM(units=config.num_lstm_units, return_sequences=True))(x)
     x = Dropout(config.dropout)(x)
     x = Dense(config.num_lstm_units, activation='tanh')(x)
-    x = Dense(ntags)(x)
-    crf = CRFLayer()
-    pred = crf([x, sequence_lengths])
+    pred = Dense(ntags, activation='softmax')(x)
+    # crf = CRFLayer()
+    # pred = crf([x, sequence_lengths])
 
     model = Model(inputs=[char_ids, sequence_lengths], outputs=[pred])
-    model.loss = crf.loss  # a bit tricky
+    # model.loss = crf.loss  # a bit tricky
+    model.loss = None
 
     return model

@@ -27,12 +27,17 @@ class TrainerTest(unittest.TestCase):
         model_config = ModelConfig()
         training_config = TrainingConfig()
 
-        train_path = os.path.join(DATA_ROOT, 'conll.txt')
-        valid_path = os.path.join(DATA_ROOT, 'conll.txt')
-        x_train, y_train = load_data_and_labels(train_path)
-        x_valid, y_valid = load_data_and_labels(valid_path)
+        # train_path = os.path.join(DATA_ROOT, 'conll.txt')
+        # valid_path = os.path.join(DATA_ROOT, 'conll.txt')
+        # x_train, y_train = load_data_and_labels(train_path)
+        # x_valid, y_valid = load_data_and_labels(valid_path)
+        path = os.path.join(DATA_ROOT, 'dataset.tsv')
+        X, y = load_data_and_labels(path)
+        from sklearn.model_selection import train_test_split
+        x_train, x_valid, y_train, y_valid = train_test_split(X, y, test_size=0.3, random_state=42)
 
-        p = prepare_preprocessor(x_train, y_train)
+        # p = prepare_preprocessor(x_train, y_train)
+        p = prepare_preprocessor(X, y)
         p.save(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
         model_file = os.path.join(SAVE_ROOT, 'model.h5')
 

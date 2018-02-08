@@ -30,7 +30,7 @@ class Trainer(object):
         valid_steps, valid_batches = batch_iter(
             x_valid, y_valid, self.training_config.batch_size, preprocessor=self.preprocessor)
 
-        self.model.compile(loss=self.loss,
+        self.model.compile(loss='categorical_crossentropy', #self.loss,
                            optimizer=Adam(lr=self.training_config.learning_rate),
                            )
 
