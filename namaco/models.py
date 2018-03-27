@@ -1,4 +1,4 @@
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, BatchNormalization
 from keras.models import Model
 from keras.layers.merge import Concatenate
 
@@ -26,7 +26,7 @@ def CharNER(char_vocab_size, word_vocab_size, ntags,
                                     weights=[embeddings])(word_ids)
 
     x = Concatenate(axis=-1)([x, word_embeddings])
-    # Batch Normalization?
+    x = BatchNormalization()(x)
     x = Dropout(dropout)(x)
     x = Dense(num_lstm_units, activation='tanh')(x)
     pred = Dense(ntags, activation='softmax')(x)

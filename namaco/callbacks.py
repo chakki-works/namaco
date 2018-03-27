@@ -7,6 +7,8 @@ import numpy as np
 from keras.callbacks import Callback, TensorBoard, EarlyStopping, ModelCheckpoint
 from seqeval.metrics import f1_score, classification_report
 
+from namaco.preprocess import PAD
+
 
 def get_callbacks(log_dir=None, valid=(), checkpoint_dir=None, early_stopping=True):
     """Get callbacks.
@@ -59,13 +61,23 @@ class F1score(Callback):
         for i in range(self.valid_steps):
             x_true, y_true = next(self.valid_batches)
             y_true = np.argmax(y_true, -1)
-            sequence_lengths = x_true[-1]  # shape of (batch_size, 1)
-            sequence_lengths = np.reshape(sequence_lengths, (-1,))
+
             y_pred = self.model.predict_on_batch(x_true)
             y_pred = np.argmax(y_pred, -1)
 
             y_true = self.p(y_true)
             y_pred = self.p(y_pred)
+
+            sequence_lengths = []
+            for y in y_true:
+                try:
+                    i = y.index(PAD)
+                except ValueError:
+                    i = -1
+                sequence_lengths.append(i)
+
+            y_true = [y[:l] for l, y in zip(sequence_lengths, y_true)]
+            y_pred = [y[:l] for l, y in zip(sequence_lengths, y_pred)]
 
             label_true.extend(y_true)
             label_pred.extend(y_pred)
