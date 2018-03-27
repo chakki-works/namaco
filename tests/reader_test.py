@@ -1,8 +1,8 @@
 import os
 import unittest
 
-from namaco.data.reader import load_data_and_labels, batch_iter
-from namaco.data.preprocess import prepare_preprocessor
+from namaco.utils import load_data_and_labels, batch_iter
+from namaco.preprocess import StaticPreprocessor, DynamicPreprocessor
 
 
 class ReaderTest(unittest.TestCase):

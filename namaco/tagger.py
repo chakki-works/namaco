@@ -2,9 +2,6 @@ from collections import defaultdict
 
 import numpy as np
 
-from namaco.data.metrics import get_entities
-from namaco.models import load
-
 
 class Tagger(object):
 

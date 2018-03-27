@@ -1,10 +1,11 @@
 import os
 import unittest
 
-import namaco
-from namaco.data.reader import load_data_and_labels
-from namaco.data.preprocess import prepare_preprocessor
-from namaco.config import ModelConfig, TrainingConfig
+from sklearn.model_selection import train_test_split
+
+from namaco.utils import load_data_and_labels
+from namaco.preprocess import StaticPreprocessor, DynamicPreprocessor
+from namaco.trainer import Trainer
 from namaco.models import CharNER
 
 
@@ -23,30 +24,26 @@ class TrainerTest(unittest.TestCase):
         if not os.path.exists(SAVE_ROOT):
             os.mkdir(SAVE_ROOT)
 
-    def test_train(self):
-        model_config = ModelConfig()
-        training_config = TrainingConfig()
-
-        # train_path = os.path.join(DATA_ROOT, 'conll.txt')
-        # valid_path = os.path.join(DATA_ROOT, 'conll.txt')
-        # x_train, y_train = load_data_and_labels(train_path)
-        # x_valid, y_valid = load_data_and_labels(valid_path)
-        path = os.path.join(DATA_ROOT, 'dataset.tsv')
+    def setUp(self):
+        print('Loading datasets...')
+        path = os.path.join(DATA_ROOT, 'datasets.tsv')
         X, y = load_data_and_labels(path)
-        from sklearn.model_selection import train_test_split
         x_train, x_valid, y_train, y_valid = train_test_split(X, y, test_size=0.3, random_state=42)
 
-        # p = prepare_preprocessor(x_train, y_train)
-        p = prepare_preprocessor(X, y)
-        p.save(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
-        model_file = os.path.join(SAVE_ROOT, 'model.h5')
+        print('Transforming datasets...')
+        self.p = StaticPreprocessor()
+        self.p.fit(X, y)
+        self.x_train, self.y_train = self.p.transform(x_train, y_train)
+        self.x_valid, self.y_valid = self.p.transform(x_valid, y_valid)
+        self.dp = DynamicPreprocessor(n_labels=len(self.p.label_dic))
 
-        model = CharNER(model_config, p.vocab_size(), p.tag_size())
+        print('Building a model...')
+        self.model = CharNER(char_vocab_size=len(self.p.char_dic),
+                             word_vocab_size=len(self.p.word_dic),
+                             ntags=len(self.p.label_dic))
 
-        trainer = namaco.Trainer(model,
-                                 model.loss,
-                                 training_config,
-                                 log_dir=LOG_ROOT,
-                                 save_path=model_file,
-                                 preprocessor=p)
-        trainer.train(x_train, y_train, x_valid, y_valid)
+    def test_train(self):
+        print('Training the model...')
+        trainer = Trainer(self.model, preprocessor=self.dp,
+                          inverse_transform=self.p.inverse_transform)
+        trainer.train(self.x_train, self.y_train, self.x_valid, self.y_valid)

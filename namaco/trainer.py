@@ -1,47 +1,46 @@
-from keras.optimizers import Adam
-
-from namaco.data.metrics import get_callbacks
-from namaco.data.reader import batch_iter
+"""
+Model Trainer.
+"""
+from namaco.callbacks import get_callbacks
+from namaco.utils import batch_iter
 
 
 class Trainer(object):
 
-    def __init__(self,
-                 model,
-                 loss,
-                 training_config,
-                 log_dir=None,
-                 save_path=None,
-                 preprocessor=None,
-                 ):
-
-        self.model = model
-        self.loss = loss
-        self.training_config = training_config
-        self.log_dir = log_dir
-        self.save_path = save_path
-        self.preprocessor = preprocessor
+    def __init__(self, model, loss='categorical_crossentropy', optimizer='adam',
+                 max_epoch=15, batch_size=32, checkpoint_path=None,
+                 log_dir=None, preprocessor=None, early_stopping=False, inverse_transform=None):
+        self._model = model
+        self._loss = loss
+        self._optimizer = optimizer
+        self._max_epoch = max_epoch
+        self._batch_size = batch_size
+        self._checkpoint_path = checkpoint_path
+        self._log_dir = log_dir
+        self._early_stopping = early_stopping
+        self._preprocessor = preprocessor
+        self._inverse_transform = inverse_transform
 
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
 
         # Prepare training and validation data(steps, generator)
-        train_steps, train_batches = batch_iter(
-            x_train, y_train, self.training_config.batch_size, preprocessor=self.preprocessor)
-        valid_steps, valid_batches = batch_iter(
-            x_valid, y_valid, self.training_config.batch_size, preprocessor=self.preprocessor)
+        train_steps, train_batches = batch_iter(x_train, y_train,
+                                                self._batch_size,
+                                                preprocessor=self._preprocessor)
+        valid_steps, valid_batches = batch_iter(x_valid, y_valid,
+                                                self._batch_size,
+                                                preprocessor=self._preprocessor)
 
-        self.model.compile(loss='categorical_crossentropy', #self.loss,
-                           optimizer=Adam(lr=self.training_config.learning_rate),
-                           )
+        self._model.compile(loss=self._loss, optimizer=self._optimizer)
 
-        # Prepare callbacks for training
-        callbacks = get_callbacks(log_dir=self.log_dir,
-                                  save_path=self.save_path,
-                                  eary_stopping=self.training_config.early_stopping,
-                                  valid=(valid_steps, valid_batches, self.preprocessor))
+        # Prepare callbacks
+        callbacks = get_callbacks(log_dir=self._log_dir,
+                                  checkpoint_dir=self._checkpoint_path,
+                                  early_stopping=self._early_stopping,
+                                  valid=(valid_steps, valid_batches, self._inverse_transform))
 
         # Train the model
-        self.model.fit_generator(generator=train_batches,
-                                 steps_per_epoch=train_steps,
-                                 epochs=self.training_config.max_epoch,
-                                 callbacks=callbacks)
+        self._model.fit_generator(generator=train_batches,
+                                  steps_per_epoch=train_steps,
+                                  epochs=self._max_epoch,
+                                  callbacks=callbacks)
