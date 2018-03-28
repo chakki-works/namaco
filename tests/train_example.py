@@ -39,7 +39,7 @@ if __name__ == '__main__':
     print('Loading datasets...')
     path = os.path.join(DATA_ROOT, 'datasets.tsv')
     X, y = load_data_and_labels(path)
-    x_train, x_valid, y_train, y_valid = train_test_split(X, y, test_size=0.3, random_state=42)
+    x_train, x_valid, y_train, y_valid = train_test_split(X, y, test_size=0.1, random_state=42)
     embeddings = KeyedVectors.load(EMBEDDING_PATH).wv
 
     print('Transforming datasets...')

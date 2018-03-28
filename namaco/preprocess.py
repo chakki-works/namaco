@@ -36,6 +36,7 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
         self.word_dic = {PAD: 0, UNK: 1}
         self.char_dic = {PAD: 0, UNK: 1}
         self.label_dic = {PAD: 0}
+        self.bies_dic = {'B': 1, 'I': 2, 'E': 3, 'S': 4}
 
     def fit(self, X, y=None):
         for doc in X:
@@ -63,6 +64,7 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         x_words = []
         x_chars = []
+        x_bies = []
         for doc in X:
             text = ''.join(doc)
             if self._lowercase:
@@ -73,17 +75,21 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
             word_ids = [[self.word_dic.get(w, self.word_dic[UNK]) for _ in range(len(w))]
                         for w in words]
             char_ids = [self._get_char_ids(w) for w in words]
+            bies_ids = [self.get_bies(w) for w in words]
             word_ids = list(itertools.chain(*word_ids))
             char_ids = list(itertools.chain(*char_ids))
+            bies_ids = list(itertools.chain(*bies_ids))
             x_words.append(np.array(word_ids, dtype=np.int32))
             x_chars.append(np.array(char_ids, dtype=np.int32))
+            x_bies.append(np.array(bies_ids, dtype=np.int32))
 
             assert len(char_ids) == len(word_ids)
+            assert len(bies_ids) == len(word_ids)
 
         if y is not None:
             y = np.array([[self.label_dic[t] for t in sent] for sent in y])
 
-        inputs = [np.array(x_words), np.array(x_chars)]
+        inputs = [np.array(x_words), np.array(x_chars), np.array(x_bies)]
 
         return (inputs, y) if y is not None else inputs
 
@@ -97,6 +103,14 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
 
     def _get_char_ids(self, word):
         return [self.char_dic.get(c, self.char_dic[UNK]) for c in word]
+
+    def get_bies(self, word):
+        if len(word) == 1:
+            return [self.bies_dic['S']]
+        res = [self.bies_dic['I']] * len(word)
+        res[0] = self.bies_dic['B']
+        res[-1] = self.bies_dic['E']
+        return res
 
     def save(self, file_path):
         joblib.dump(self, file_path)
@@ -114,14 +128,15 @@ class DynamicPreprocessor(BaseEstimator, TransformerMixin):
         self.n_labels = n_labels
 
     def transform(self, X, y=None):
-        words, chars = X
+        words, chars, bies = X
         words = pad_sequences(words, padding='post')
         chars = pad_sequences(chars, padding='post')
+        bies = pad_sequences(bies, padding='post')
 
         if y is not None:
             y = pad_sequences(y, padding='post')
             y = np.array([to_categorical(y_, self.n_labels) for y_ in y])
-        sents = [words, chars]
+        sents = [words, chars, bies]
 
         return (sents, y) if y is not None else sents
 

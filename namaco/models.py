@@ -9,9 +9,14 @@ def CharNER(char_vocab_size, word_vocab_size, ntags,
 
     word_ids = Input(batch_shape=(None, None), dtype='int32')
     char_ids = Input(batch_shape=(None, None), dtype='int32')
+    bies_ids = Input(batch_shape=(None, None), dtype='int32')
     char_embeddings = Embedding(input_dim=char_vocab_size,
                                 output_dim=char_embedding_size,
                                 mask_zero=True)(char_ids)
+    bies_embeddings = Embedding(input_dim=5,
+                                output_dim=5,
+                                mask_zero=True)(bies_ids)
+    char_embeddings = Concatenate()([char_embeddings, bies_embeddings])
     # x = Dropout(dropout)(char_embeddings)
     x = Bidirectional(LSTM(units=num_lstm_units, return_sequences=True))(char_embeddings)
 
@@ -29,8 +34,9 @@ def CharNER(char_vocab_size, word_vocab_size, ntags,
     x = BatchNormalization()(x)
     x = Dropout(dropout)(x)
     x = Dense(num_lstm_units, activation='tanh')(x)
-    pred = Dense(ntags, activation='softmax')(x)
+    # pred = Dense(ntags, activation='softmax')(x)
+    pred = LSTM(units=ntags, activation='softmax', return_sequences=True)(x)
 
-    model = Model(inputs=[word_ids, char_ids], outputs=[pred])
+    model = Model(inputs=[word_ids, char_ids, bies_ids], outputs=[pred])
 
     return model
