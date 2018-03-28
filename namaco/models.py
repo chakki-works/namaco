@@ -34,8 +34,8 @@ def CharNER(char_vocab_size, word_vocab_size, ntags,
     x = BatchNormalization()(x)
     x = Dropout(dropout)(x)
     x = Dense(num_lstm_units, activation='tanh')(x)
-    # pred = Dense(ntags, activation='softmax')(x)
-    pred = LSTM(units=ntags, activation='softmax', return_sequences=True)(x)
+    pred = Dense(ntags, activation='softmax')(x)
+    # pred = LSTM(units=ntags, activation='softmax', return_sequences=True)(x)
 
     model = Model(inputs=[word_ids, char_ids, bies_ids], outputs=[pred])
 
