@@ -14,7 +14,8 @@ from keras.preprocessing.sequence import pad_sequences
 
 UNK = '<UNK>'
 PAD = '<PAD>'
-t = MeCab.Tagger('-Owakati')
+# t = MeCab.Tagger('-Owakati')
+t = MeCab.Tagger('-Owakati -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
 
 
 def tokenize(text):

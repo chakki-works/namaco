@@ -13,7 +13,8 @@ from namaco.models import CharNER
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'data')
 SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')  # trained model
 LOG_ROOT = os.path.join(os.path.dirname(__file__), 'logs')     # tensorboard
-EMBEDDING_PATH = os.path.join(DATA_ROOT, 'jawiki-embeddings/wiki.ja.word2vec.model')
+# EMBEDDING_PATH = os.path.join(DATA_ROOT, 'jawiki-embeddings/wiki.ja.word2vec.model')
+EMBEDDING_PATH = os.path.join(DATA_ROOT, 'jawiki-embeddings-neologd/wiki.ja.neologd.word2vec.model')
 
 
 def filter_embeddings(embeddings, vocab, dim):
