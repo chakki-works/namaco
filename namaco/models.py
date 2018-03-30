@@ -1,4 +1,4 @@
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, BatchNormalization
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, BatchNormalization, SimpleRNN
 from keras.models import Model
 from keras.layers.merge import Concatenate
 
@@ -86,7 +86,8 @@ def create_model(char_vocab_size, word_vocab_size, pos_vocab_size, ntags,
     x = BatchNormalization()(x)
     x = Dropout(dropout)(x)
     x = Dense(word_lstm_units, activation='tanh')(x)
-    pred = Dense(ntags, activation='softmax')(x)
+    # pred = Dense(ntags, activation='softmax')(x)
+    pred = SimpleRNN(units=ntags, activation='softmax', return_sequences=True)(x)
 
     model = Model(inputs=[word_ids, char_ids, bies_ids, pos_ids], outputs=[pred])
 
