@@ -59,6 +59,6 @@ if __name__ == '__main__':
                          embeddings=embeddings)
 
     print('Training the model...')
-    trainer = Trainer(model, preprocessor=dp,
-                      inverse_transform=p.inverse_transform)
+    trainer = Trainer(model, preprocessor=dp, inverse_transform=p.inverse_transform,
+                      log_dir=LOG_ROOT, checkpoint_path=SAVE_ROOT)
     trainer.train(x_train, y_train, x_valid, y_valid)

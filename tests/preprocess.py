@@ -122,7 +122,10 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
     def fit_transform(self, X, y=None, **fit_params):
         return self.fit(X, y).transform(X, y)
 
-    def inverse_transform(self, docs):
+    def inverse_transform(self, X=None, docs=None):
+        if X is not None:
+            id2char = {i: c for c, i in self.char_dic.items()}
+            return [[id2char[c] for c in sent] for sent in X]
         id2label = {i: t for t, i in self.label_dic.items()}
 
         return [[id2label[t] for t in doc] for doc in docs]

@@ -54,10 +54,12 @@ class F1score(Callback):
         self.valid_steps = valid_steps
         self.valid_batches = valid_batches
         self.p = preprocessor
+        self.log_file = 'predicted.txt'
 
     def on_epoch_end(self, epoch, logs={}):
         label_true = []
         label_pred = []
+        docs = []
         for i in range(self.valid_steps):
             x_true, y_true = next(self.valid_batches)
             y_true = np.argmax(y_true, -1)
@@ -65,8 +67,9 @@ class F1score(Callback):
             y_pred = self.model.predict_on_batch(x_true)
             y_pred = np.argmax(y_pred, -1)
 
-            y_true = self.p(y_true)
-            y_pred = self.p(y_pred)
+            y_true = self.p(docs=y_true)
+            y_pred = self.p(docs=y_pred)
+            sents = self.p(X=x_true[1])
 
             sequence_lengths = []
             for y in y_true:
@@ -78,11 +81,19 @@ class F1score(Callback):
 
             y_true = [y[:l] for l, y in zip(sequence_lengths, y_true)]
             y_pred = [y[:l] for l, y in zip(sequence_lengths, y_pred)]
+            sents = [s[:l] for l, s in zip(sequence_lengths, sents)]
 
             label_true.extend(y_true)
             label_pred.extend(y_pred)
+            docs.extend(sents)
 
         score = f1_score(label_true, label_pred)
         print(' - f1: {:04.2f}'.format(score * 100))
         print(classification_report(label_true, label_pred))
         logs['f1'] = score
+
+        with open(self.log_file, 'a') as f:
+            for sent, y_t, y_p in zip(docs, label_true, label_pred):
+                f.write('{}\n'.format('\t'.join(sent)))
+                f.write('{}\n'.format('\t'.join(y_t)))
+                f.write('{}\n'.format('\t'.join(y_p)))
