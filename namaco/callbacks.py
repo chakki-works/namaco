@@ -92,8 +92,8 @@ class F1score(Callback):
         print(classification_report(label_true, label_pred))
         logs['f1'] = score
 
-        with open(self.log_file, 'a') as f:
+        with open(self.log_file, 'w') as f:
             for sent, y_t, y_p in zip(docs, label_true, label_pred):
-                f.write('{}\n'.format('\t'.join(sent)))
-                f.write('{}\n'.format('\t'.join(y_t)))
-                f.write('{}\n'.format('\t'.join(y_p)))
+                for c, t, p in zip(sent, y_t, y_p):
+                    f.write('{}\t{}\t{}\n'.format(c, t, p))
+                f.write('\n')
