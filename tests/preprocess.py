@@ -41,6 +41,31 @@ def normalize_number(text):
     return re.sub(r'[0-9０１２３４５６７８９]', r'0', text)
 
 
+def is_hiragana(ch):
+    return 0x3040 <= ord(ch) <= 0x309F
+
+
+def is_katakana(ch):
+    return 0x30A0 <= ord(ch) <= 0x30FF
+
+
+def get_character_type(ch):
+    if ch.isspace():
+        return 1
+    elif ch.isdigit():
+        return 2
+    elif ch.islower():
+        return 3
+    elif ch.isupper():
+        return 4
+    elif is_hiragana(ch):
+        return 5
+    elif is_katakana(ch):
+        return 6
+    else:
+        return 7
+
+
 class StaticPreprocessor(BaseEstimator, TransformerMixin):
 
     def __init__(self, lowercase=True, num_norm=True, vocab_init=None):
@@ -52,6 +77,7 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
         self.pos_dic = {PAD: 0, UNK: 1}
         self.label_dic = {PAD: 0}
         self.bies_dic = {'B': 1, 'I': 2, 'E': 3, 'S': 4}
+        self.char_type_dic = {PAD: 0}
 
     def fit(self, X, y=None):
         for doc in X:
@@ -86,6 +112,7 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
         x_chars = []
         x_bies = []
         x_poses = []
+        x_types = []
         for doc in X:
             text = ''.join(doc)
             if self._lowercase:
@@ -99,14 +126,17 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
             bies_ids = [self.get_bies(w) for w in words]
             pos_ids = [[self.pos_dic.get(p, self.pos_dic[UNK]) for _ in range(len(w))]
                        for w, p in zip(words, poses)]
+            char_types = [self.get_char_types(w) for w in words]
             word_ids = list(itertools.chain(*word_ids))
             char_ids = list(itertools.chain(*char_ids))
             bies_ids = list(itertools.chain(*bies_ids))
             pos_ids = list(itertools.chain(*pos_ids))
+            char_types = list(itertools.chain(*char_types))
             x_words.append(np.array(word_ids, dtype=np.int32))
             x_chars.append(np.array(char_ids, dtype=np.int32))
             x_bies.append(np.array(bies_ids, dtype=np.int32))
             x_poses.append(np.array(pos_ids, dtype=np.int32))
+            x_types.append(np.array(char_types, dtype=np.int32))
 
             assert len(char_ids) == len(word_ids)
             assert len(bies_ids) == len(word_ids)
@@ -115,7 +145,7 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
         if y is not None:
             y = np.array([[self.label_dic[t] for t in sent] for sent in y])
 
-        inputs = [np.array(x_words), np.array(x_chars), np.array(x_bies), np.array(x_poses)]
+        inputs = [np.array(x_words), np.array(x_chars), np.array(x_bies), np.array(x_poses), np.array(x_types)]
 
         return (inputs, y) if y is not None else inputs
 
@@ -132,6 +162,9 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
 
     def _get_char_ids(self, word):
         return [self.char_dic.get(c, self.char_dic[UNK]) for c in word]
+
+    def get_char_types(self, word):
+        return [get_character_type(c) for c in word]
 
     def get_bies(self, word):
         if len(word) == 1:
@@ -157,16 +190,17 @@ class DynamicPreprocessor(BaseEstimator, TransformerMixin):
         self.n_labels = n_labels
 
     def transform(self, X, y=None):
-        words, chars, bies, poses = X
+        words, chars, bies, poses, types = X
         words = pad_sequences(words, padding='post')
         chars = pad_sequences(chars, padding='post')
         bies = pad_sequences(bies, padding='post')
         poses = pad_sequences(poses, padding='post')
+        types = pad_sequences(types, padding='post')
 
         if y is not None:
             y = pad_sequences(y, padding='post')
             y = np.array([to_categorical(y_, self.n_labels) for y_ in y])
-        sents = [words, chars, bies, poses]
+        sents = [words, chars, bies, poses, types]
 
         return (sents, y) if y is not None else sents
 
