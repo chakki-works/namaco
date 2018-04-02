@@ -1,3 +1,7 @@
+"""
+Training example.
+"""
+import argparse
 import os
 
 import numpy as np
@@ -6,15 +10,8 @@ from sklearn.model_selection import train_test_split
 
 from namaco.utils import load_data_and_labels
 from namaco.trainer import Trainer
-from namaco.models import create_model
+from namaco.models import CharModel
 from namaco.preprocess import StaticPreprocessor, DynamicPreprocessor
-
-
-DATA_ROOT = os.path.join(os.path.dirname(__file__), 'data')
-SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')  # trained model
-LOG_ROOT = os.path.join(os.path.dirname(__file__), 'logs')     # tensorboard
-# EMBEDDING_PATH = os.path.join(DATA_ROOT, 'jawiki-embeddings/wiki.ja.word2vec.model')
-EMBEDDING_PATH = os.path.join(DATA_ROOT, 'jawiki-embeddings-neologd/wiki.ja.neologd.word2vec.model')
 
 
 def filter_embeddings(embeddings, vocab, dim):
@@ -36,12 +33,11 @@ def filter_embeddings(embeddings, vocab, dim):
     return _embeddings
 
 
-if __name__ == '__main__':
+def main(args):
     print('Loading datasets...')
-    path = os.path.join(DATA_ROOT, 'datasets.tsv')
-    X, y = load_data_and_labels(path)
+    X, y = load_data_and_labels(args.data_path)
     x_train, x_valid, y_train, y_valid = train_test_split(X, y, test_size=0.1, random_state=42)
-    embeddings = KeyedVectors.load(EMBEDDING_PATH).wv
+    embeddings = KeyedVectors.load(args.embedding_path).wv
 
     print('Transforming datasets...')
     p = StaticPreprocessor()
@@ -52,13 +48,33 @@ if __name__ == '__main__':
     embeddings = filter_embeddings(embeddings, p.word_dic, embeddings.vector_size)
 
     print('Building a model...')
-    model = create_model(char_vocab_size=len(p.char_dic),
-                         word_vocab_size=len(p.word_dic),
-                         pos_vocab_size=len(p.pos_dic),
-                         ntags=len(p.label_dic),
-                         embeddings=embeddings)
+    model = CharModel(char_vocab_size=len(p.char_dic),
+                      word_vocab_size=len(p.word_dic),
+                      pos_vocab_size=len(p.pos_dic),
+                      ntags=len(p.label_dic),
+                      embeddings=embeddings)
+    model.build()
 
     print('Training the model...')
     trainer = Trainer(model, preprocessor=dp, inverse_transform=p.inverse_transform,
-                      log_dir=LOG_ROOT, checkpoint_path=SAVE_ROOT)
+                      log_dir=args.log_dir, checkpoint_path=args.save_dir)
     trainer.train(x_train, y_train, x_valid, y_valid)
+
+    print('Saving the model...')
+    model.save(args.weights_file, args.params_file)
+    p.save(args.preprocessor_file)
+
+
+if __name__ == '__main__':
+    DATA_DIR = os.path.join(os.path.dirname(__file__), '../tests/data')
+    SAVE_DIR = os.path.join(os.path.dirname(__file__), 'models')
+    parser = argparse.ArgumentParser(description='Training a model')
+    parser.add_argument('--data_path', default=os.path.join(DATA_DIR, 'datasets.tsv'))
+    parser.add_argument('--embedding_path', default=os.path.join(DATA_DIR, 'jawiki-embeddings-neologd/wiki.ja.neologd.word2vec.model'))
+    parser.add_argument('--log_dir', default=os.path.join(os.path.dirname(__file__), 'logs'))
+    parser.add_argument('--save_dir', default=SAVE_DIR)
+    parser.add_argument('--weights_file', default=os.path.join(SAVE_DIR, 'model_weights.h5'))
+    parser.add_argument('--params_file', default=os.path.join(SAVE_DIR, 'params.json'))
+    parser.add_argument('--preprocessor_file', default=os.path.join(SAVE_DIR, 'preprocessor.json'))
+    args = parser.parse_args()
+    main(args)
