@@ -1,31 +1,36 @@
-from collections import defaultdict
-
+"""
+Model API.
+"""
 import numpy as np
+from seqeval.metrics.sequence_labeling import get_entities
 
 
 class Tagger(object):
 
-    def __init__(self,
-                 model_path,
-                 preprocessor,
-                 tokenizer=str.split):
-
+    def __init__(self, model, preprocessor=None,
+                 dynamic_preprocessor=None, tokenizer=str.split):
+        self.model = model
         self.preprocessor = preprocessor
+        self.dynamic_preprocessor = dynamic_preprocessor
         self.tokenizer = tokenizer
-        self.model = load(model_path)
 
-    def predict(self, words):
-        length = np.array([len(words)])
-        X = self.preprocessor.transform([words])
-        pred = self.model.predict([X[0], length])
-        # pred = np.argmax(pred, -1)
-        # pred = self.preprocessor.inverse_transform(pred[0])
+    def predict(self, sent):
+        """Predict using the model.
+        Args:
+            sent : string, the input data.
+       Returns:
+           y : array-like, shape (n_samples,) or (n_samples, n_classes)
+           The predicted classes.
+       """
+        X = self.preprocessor.transform([sent])
+        X = self.dynamic_preprocessor.transform(X)
+        y = self.model.predict(X)
 
-        return pred
+        return y
 
     def _get_tags(self, pred):
         pred = np.argmax(pred, -1)
-        tags = self.preprocessor.inverse_transform(pred[0])
+        tags = self.preprocessor.inverse_transform(docs=pred)
 
         return tags
 
@@ -36,20 +41,21 @@ class Tagger(object):
 
     def _build_response(self, sent, tags, prob):
         res = {
-            'language': 'jp',
-            'text': sent,
+            'sent': sent,
             'entities': [
 
             ]
         }
         chunks = get_entities(tags)
+
         for chunk_type, chunk_start, chunk_end in chunks:
+            chunk_end += 1
             entity = {
-                'text': sent[chunk_start: chunk_end],
+                'text': sent[chunk_start: chunk_end + 1],
                 'type': chunk_type,
-                'score': float(np.average(prob[chunk_start: chunk_end])),
+                'score': float(np.average(prob[chunk_start: chunk_end + 1])),
                 'beginOffset': chunk_start,
-                'endOffset': chunk_end
+                'endOffset': chunk_end + 1
             }
             res['entities'].append(entity)
 
@@ -58,77 +64,15 @@ class Tagger(object):
     def analyze(self, sent):
         assert isinstance(sent, str)
 
-        words = self.tokenizer(sent)
-        pred = self.predict(words)
+        pred = self.predict(sent)
         tags = self._get_tags(pred)
         prob = self._get_prob(pred)
         res = self._build_response(sent, tags, prob)
 
         return res
 
-    def tag(self, sent):
-        """Tags a sentence named entities.
-
-        Args:
-            sent: a sentence
-
-        Return:
-            labels_pred: list of (word, tag) for a sentence
-
-        Example:
-            >>> sent = 'President Obama is speaking at the White House.'
-            >>> print(self.tag(sent))
-            [('President', 'O'), ('Obama', 'PERSON'), ('is', 'O'),
-             ('speaking', 'O'), ('at', 'O'), ('the', 'O'),
-             ('White', 'LOCATION'), ('House', 'LOCATION'), ('.', 'O')]
-        """
-        assert isinstance(sent, str)
-
-        words = self.tokenizer(sent)
-        pred = self.predict(words)
+    def label(self, sent):
+        pred = self.predict(sent)
         tags = self._get_tags(pred)
-        tags = [t.split('-')[-1] for t in tags]  # remove prefix: e.g. B-Person -> Person
 
-        return list(zip(words, tags))
-
-    def get_entities(self, sent):
-        """Gets entities from a sentence.
-
-        Args:
-            sent: a sentence
-
-        Return:
-            labels_pred: dict of entities for a sentence
-
-        Example:
-            sent = 'President Obama is speaking at the White House.'
-            result = {'Person': ['Obama'], 'LOCATION': ['White House']}
-        """
-        assert isinstance(sent, str)
-
-        words = self.tokenizer(sent)
-        pred = self.predict(words)
-        entities = self._get_chunks(words, pred)
-
-        return entities
-
-    def _get_chunks(self, words, tags):
-        """
-        Args:
-            words: sequence of word
-            tags: sequence of labels
-
-        Returns:
-            dict of entities for a sequence
-
-        Example:
-            words = ['President', 'Obama', 'is', 'speaking', 'at', 'the', 'White', 'House', '.']
-            tags = ['O', 'B-Person', 'O', 'O', 'O', 'O', 'B-Location', 'I-Location', 'O']
-            result = {'Person': ['Obama'], 'LOCATION': ['White House']}
-        """
-        chunks = get_entities(tags)
-        res = defaultdict(list)
-        for chunk_type, chunk_start, chunk_end in chunks:
-            res[chunk_type].append(' '.join(words[chunk_start: chunk_end]))  # todo delimiter changeable
-
-        return res
+        return tags[0]
