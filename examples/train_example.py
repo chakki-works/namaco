@@ -36,7 +36,6 @@ def filter_embeddings(embeddings, vocab, dim):
 def main(args):
     print('Loading datasets...')
     X, y = load_data_and_labels(args.data_path)
-    X, y = X[:100], y[:100]
     x_train, x_valid, y_train, y_valid = train_test_split(X, y, test_size=0.1, random_state=42)
     embeddings = KeyedVectors.load(args.embedding_path).wv
 
@@ -58,7 +57,7 @@ def main(args):
 
     print('Training the model...')
     trainer = Trainer(model, preprocessor=dp, inverse_transform=p.inverse_transform,
-                      log_dir=args.log_dir, checkpoint_path=args.save_dir, max_epoch=1)
+                      log_dir=args.log_dir, checkpoint_path=args.save_dir)
     trainer.train(x_train, y_train, x_valid, y_valid)
 
     print('Saving the model...')

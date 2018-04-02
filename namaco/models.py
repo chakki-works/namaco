@@ -72,7 +72,6 @@ class CharModel(BaseModel):
         char_ids = Input(batch_shape=(None, None), dtype='int32')
         bies_ids = Input(batch_shape=(None, None), dtype='int32')
         pos_ids = Input(batch_shape=(None, None), dtype='int32')
-        type_ids = Input(batch_shape=(None, None), dtype='int32')
 
         char_embeddings = Embedding(input_dim=self._char_vocab_size,
                                     output_dim=self._char_emb_size,
@@ -83,9 +82,6 @@ class CharModel(BaseModel):
         pos_embeddings = Embedding(input_dim=self._pos_vocab_size,
                                    output_dim=self._pos_emb_size,
                                    mask_zero=True)(pos_ids)
-        type_embeddings = Embedding(input_dim=8,
-                                    output_dim=8,
-                                    mask_zero=True)(type_ids)
 
         x1 = Bidirectional(LSTM(units=self._char_lstm_units, return_sequences=True))(char_embeddings)
 
@@ -107,12 +103,10 @@ class CharModel(BaseModel):
         pos_embeddings = BatchNormalization()(pos_embeddings)
         x3 = Bidirectional(LSTM(units=self._pos_lstm_units, return_sequences=True))(pos_embeddings)
 
-        x4 = Bidirectional(LSTM(units=8, return_sequences=True))(type_embeddings)
-
-        x = Concatenate()([x1, x2, x3, x4])
+        x = Concatenate()([x1, x2, x3])
         x = BatchNormalization()(x)
         x = Dropout(self._dropout)(x)
         x = Dense(self._word_lstm_units, activation='tanh')(x)
         pred = SimpleRNN(units=self._ntags, activation='softmax', return_sequences=True)(x)
 
-        self.model = Model(inputs=[word_ids, char_ids, bies_ids, pos_ids, type_ids], outputs=[pred])
+        self.model = Model(inputs=[word_ids, char_ids, bies_ids, pos_ids], outputs=[pred])
