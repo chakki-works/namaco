@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from namaco.utils import load_data_and_labels
 from namaco.trainer import Trainer
 from namaco.models import create_model
-from tests.preprocess import StaticPreprocessor, DynamicPreprocessor
+from namaco.preprocess import StaticPreprocessor, DynamicPreprocessor
 
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'data')
