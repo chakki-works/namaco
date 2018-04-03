@@ -1,0 +1,141 @@
+<html>
+<head>
+  <title>Demo: Named Entity Recognition</title>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="MobileOptimized" content="320">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.0/css/bulma.min.css">
+	<!--
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	-->
+	<script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js" integrity="sha384-8iPTk2s/jMVj81dnzb/iFR2sdA7u06vHJyyLlAd4snFpCl/SnyUjRrbdJsw1pGIl" crossorigin="anonymous"></script>
+  <style type="text/css">
+    html,body {
+      //background: #EFF3F4;
+    }
+  </style>
+</head>
+<body>
+
+<section class="">
+	<div class="hero-head">
+		<nav class="navbar">
+			<div class="container">
+				<div class="navbar-brand">
+					<a class="navbar-item" href="../">
+						<img src="{{ static_url('images/logo.png') }}" alt="Logo">
+					</a>
+					<span class="navbar-burger burger" data-target="navbarMenu">
+						<span></span>
+						<span></span>
+						<span></span>
+					</span>
+				</div>
+				<div id="navbarMenu" class="navbar-menu">
+					<div class="navbar-end">
+						<a class="navbar-item is-active">
+							Home
+						</a>
+						<a class="navbar-item">
+							Examples
+						</a>
+						<a class="navbar-item">
+							Features
+						</a>
+						<a class="navbar-item">
+							Team
+						</a>
+						<a class="navbar-item">
+							Help
+						</a>
+					</div>
+				</div>
+			</div>
+		</nav>
+	</div>
+
+
+	<div class="hero-body">
+		<div class="container">
+			<div class="content-area">
+
+				<div class="columns">
+					<div class="column is-8 is-offset-2">
+						<p class="title is-4">Try the API</p>
+						<form method="post" action="{{ reverse_url('ner') }}">
+						<div class="field is-grouped">
+							<div class="control is-expanded">
+								<textarea class="textarea" placeholder="Textarea" name="sent" id="ttttt">{{ sent }}</textarea>
+							</div>
+							<div class="control">
+								<button type="submit" class="button is-primary">Analyze</button>
+							</div>
+						</div>
+						</form>
+					</div>
+				</div>
+
+				{% set dic = {'name' : ['style=color:#ff3860;', 'fa-user'],
+				              'location' : ['style=color:#23d160;', 'fa-map-marker'],
+				              'organization': ['', 'fa-sitemap'],
+				              'facility': ['style=color:#DD4C29;', 'fa-university'],
+				              'artifact': ['style=color:#8E008D;', 'fa-gift'],
+				              'event': ['style=color:#209cee;', 'fa-calendar'],
+				              'timex': ['style=color:#ff9900;', 'fa-clock'],
+				              'natural_object': ['style=color:#ADFF2F;', 'fa-leaf'],
+				              'quantity': ['', 'fa-tachometer-alt'],
+				              'color': ['', 'fa-pencil-alt'],
+				              'disease': ['', 'fa-hospital-alt']} %}
+				{% for i, e in enumerate(entities) %}
+				{% if i % 3 == 0 %}
+				<div class="columns">
+				{% end %}
+    
+					<div class="column is-4">
+
+						<div class="card">
+							<div class="card-content">
+								<div class="media">
+									<div class="media-left">
+										<span class="icon is-large" {{ dic[e['type']][0] }}>
+											<i class="fa fa-3x {{ dic[e['type']][1]}}" aria-hidden="true"></i>
+										</span>
+									</div>
+									<div class="media-content">
+										<p class="title is-4">{{ e["text"] }}</p>
+										<p class="subtitle is-5">
+											{{ e["type"].upper() }}
+											>
+											{{ e['disambiguation']['sub_type'].title().replace('_', ' ') }}
+										</p>
+									</div>
+								</div>
+								<div class="content">
+									<!--{{ e['disambiguation']['sub_type'].title().replace('_', ' ') }}<br>-->
+									<a href="{{ e['disambiguation']['page_url'] }}">Wikipedia Link</a><br>
+									Confidence: {{ round(e["score"], 3) }}
+								</div>
+							</div>
+						</div>
+					</div>
+				{% if i % 3 == 2 or i == len(entities) - 1 %}
+				</div>
+				{% end %}
+				{% end %}
+
+			</div>
+		</div>
+	</div>
+</section>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous">
+</script>
+<!--
+<script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js" integrity="sha384-8iPTk2s/jMVj81dnzb/iFR2sdA7u06vHJyyLlAd4snFpCl/SnyUjRrbdJsw1pGIl" crossorigin="anonymous"></script>
+-->
+</body>
+</html>
